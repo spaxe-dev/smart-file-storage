@@ -25,6 +25,12 @@ def extractfile(sourcedir: Path, targetdir: Path, classMap:dict, dry_run: bool):
     for file in sourcedir.iterdir():
         if file.is_file():
             move(file, targetdir, classMap, dry_run)
+        else: 
+            if file.is_dir():
+                extractfile(sourcedir=file, targetdir=targetdir, classMap=classMap, dry_run=dry_run)
+                
+            
+            
 
 def fclassify(fpath :Path, classMAP: dict) -> str:
     extType = fpath.suffix.lower().lstrip(".")
