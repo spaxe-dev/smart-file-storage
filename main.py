@@ -1,37 +1,44 @@
-import os
+import json
 from pathlib import Path
 
 # configs
-DRY_RUN = True
-EXT_MAP = {
-    ".png": "imgs",
-    ".jpg": "imgs",
-    ".jpeg": "imgs",
-    ".txt": "txt",
-    ".pdf": "pdfs",
-}
+DRY_RUN = False
+
+configPath = Path("config.json")
 
 sourcedir = Path('input/')
 targetdir = Path('sorted/')
+
+#initialization
+with configPath.open("r", encoding="utf-8") as f:
+    config = json.load(f)
+
+#mapping \
+classMAP = {}
+for folder, extension in config.items():
+    for extensions in extension:
+        classMAP[extensions.lower()] = folder
+
+# functions
 def extractfile():
     for file in sourcedir.iterdir():
         if file.is_file():
-            fpath = file
-            fname = fpath.stem
-            move(fpath)
-            # fextension = fpath.suffix.lower()
-            # print(f"{fname} {fextension}\n")
+            move(file)
 
+def fclassify(fpath :Path):
+    extType = fpath.suffix.lower().lstrip(".")
+    return classMAP.get(extType, "others")
+    
 
 def move(fpath: Path):
-    folder = EXT_MAP.get(fpath.suffix.lower())
+    folder = fclassify(fpath)
     destination = targetdir / folder
 
     if DRY_RUN:
         print(f"[DRY-RUN] {fpath} --> {destination}")
         return
     
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.mkdir(parents=True, exist_ok=True)
     fpath.rename(destination/fpath.name)
     
 
