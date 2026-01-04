@@ -9,5 +9,7 @@ def smartsort(source, target,dry):
     runSort(
         source = Path(source),
         target = Path(target),
-        if_dry = dry
+        dry = dry
     )
+
+smartsort()

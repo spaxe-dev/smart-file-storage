@@ -32,7 +32,7 @@ def fclassify(fpath :Path, classMAP: dict) -> str:
     
 
 def move(fpath: Path, targetdir: Path, classMap: dict, dry_run: bool):
-    folder = fclassify(fpath)
+    folder = fclassify(fpath, classMap)
     destination = targetdir / folder
 
     if dry_run:
