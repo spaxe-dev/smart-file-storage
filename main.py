@@ -1,8 +1,9 @@
 import json
+import argparse
 from pathlib import Path
 
 # configs
-DRY_RUN = False
+DRY_RUN = True
 
 configPath = Path("config.json")
 
