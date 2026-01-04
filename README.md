@@ -1,20 +1,22 @@
 
 # Smart File Storage
 
-A simple and extensible Python-based file organizer that automatically sorts files into folders based on their file extensions.
+Smart File Storage is a minimal, config-driven Python CLI tool that organizes files into folders based on their file extensions.
 
-This project is designed to be minimal, readable, and easy to extend later with smarter rules or ML-based classification.
+The project focuses on **explicit data flow**, **clean separation of concerns**, and **predictable behavior**. Classification rules live entirely in a JSON config file, while the CLI provides safe and flexible control over execution.
 
 ---
 
 ## Features
 
-* Automatically scans an input directory
-* Sorts files into categorized folders (images, text files, PDFs, etc.)
-* Creates destination folders automatically
-* Handles unknown file types by placing them in an `others` folder
-* Written using modern `pathlib` (no fragile path string handling)
-* Easy to extend and refactor
+* Command-line interface powered by Click
+* Config-driven file classification using JSON
+* Automatic destination folder creation
+* Safe dry-run mode (`--dry`) to preview changes
+* Handles unknown file types via an `others` category
+* No global state or hidden dependencies
+* Uses modern `pathlib` for filesystem operations
+* Minimal dependencies (only Click)
 
 ---
 
@@ -23,14 +25,13 @@ This project is designed to be minimal, readable, and easy to extend later with 
 ```
 smart-file-storage/
 │
-├── input/          # Place files to be sorted here
-├── sorted/         # Output directory (auto-created)
-│   ├── imgs/
-│   ├── txt/
-│   ├── pdfs/
-│   └── others/
+├── input/              # Default source directory
+├── sorted/             # Default output directory
 │
-├── main.py         # Main script
+├── config.json         # File type classification rules
+├── main.py             # CLI entry point
+├── sorter.py           # Core sorting logic
+├── requirements.txt
 └── README.md
 ```
 
@@ -38,65 +39,123 @@ smart-file-storage/
 
 ## How It Works
 
-The script:
+1. The CLI parses user input (`--source`, `--target`, `--dry`)
+2. The core sorter loads `config.json`
+3. File extensions are mapped to destination folders
+4. Files are scanned in the source directory
+5. Destination folders are created on demand
+6. Files are moved (or previewed in dry-run mode)
 
-1. Iterates through all files in the `input/` directory
-2. Checks the file extension
-3. Maps the extension to a target folder
-4. Moves the file into the corresponding folder inside `sorted/`
+All data flows explicitly through function arguments — no globals, no side effects.
 
 ---
 
-## Supported File Types
+## Configuration
 
-| Extension               | Destination Folder |
-| ----------------------- | ------------------ |
-| `.png`, `.jpg`, `.jpeg` | `imgs/`            |
-| `.txt`                  | `txt/`             |
-| `.pdf`                  | `pdfs/`            |
-| others / no extension   | `others/`          |
+Classification rules are defined in `config.json`.
 
-You can easily add more file types by editing the extension map.
+### Example `config.json`
+
+```json
+{
+  "images": ["png", "jpg", "jpeg", "gif"],
+  "documents": ["pdf", "txt", "docx"],
+  "audio": ["mp3", "wav"],
+  "video": ["mp4", "mkv"]
+}
+```
+
+Rules:
+
+* Keys are destination folder names
+* Values are lists of file extensions (without dots)
+* Matching is case-insensitive
+* Unknown extensions go to `others/`
+
+No code changes are required to add or modify file types.
+
+---
+
+## Installation
+
+### Requirements
+
+* Python 3.10 or higher
+
+### Setup (recommended)
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate   # Windows
+pip install -r requirements.txt
+```
 
 ---
 
 ## Usage
 
-1. Make sure you have Python 3.10 or higher installed
-2. Clone the repository
-3. Place files inside the `input/` folder
-4. Run the script:
+### Show help
+
+```bash
+python main.py --help
+```
+
+### Default run
 
 ```bash
 python main.py
 ```
 
-The files will be moved into the `sorted/` directory.
+### Dry-run (preview only)
 
----
+```bash
+python main.py --dry
+```
 
-## Example Extension Map
+### Custom source and target
 
-```python
-EXT_MAP = {
-    ".png": "imgs",
-    ".jpg": "imgs",
-    ".jpeg": "imgs",
-    ".txt": "txt",
-    ".pdf": "pdfs",
-}
+```bash
+python main.py --source Downloads --target Sorted
 ```
 
 ---
 
-## Future Improvements
+## Dry-Run Mode
 
-* Dry-run mode
-* Undo / rollback support
-* Content-based classification
-* ML-based semantic sorting
-* CLI flags
-* Logging and batch history
+When `--dry` is enabled:
+
+* No files are moved
+* No folders are created
+* All actions are printed to the console
+
+Example output:
+
+```
+[DRY-RUN] input/example.pdf -> sorted/documents/example.pdf
+```
+
+This allows safe testing and configuration changes.
+
+---
+
+## Design Principles
+
+* Explicit dependency passing over global state
+* Clear separation between CLI and core logic
+* Configuration over hardcoded behavior
+* Predictable, testable functions
+* Minimal surface area for bugs
+
+---
+
+## Planned Improvements
+
+* Recursive directory sorting
+* Ignore rules for common folders
+* Collision-safe file renaming
+* Summary report after execution
+* Packaging as an installable CLI command
+* Optional logging support
 
 ---
 
